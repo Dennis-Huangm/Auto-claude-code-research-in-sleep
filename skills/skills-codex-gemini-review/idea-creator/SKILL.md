@@ -121,17 +121,20 @@ quality/novelty narrowing.
 
 ### Phase 4: Deep Validation (for top ideas)
 
-For each surviving idea, run a deeper evaluation:
+For each budget-feasible candidate, run a deeper evaluation:
 
-1. **Novelty check**: Use the `/novelty-check` workflow (multi-source search + Gemini cross-verification) for each idea
+1. **Novelty check**: Use `/novelty-check` for each idea and apply its disposition literally:
+   - `KEEP` — advance the idea unchanged.
+   - `REFRAME` — advance the same method using only the returned simple contribution wording; do not add mechanisms.
+   - `KILL` — eliminate it only with a verified paper that substantially subsumes the primary contribution.
 
 2. **Critical review**: Use `mcp__gemini-review__review_reply_start` with the saved completed `threadId`:
    ```
    mcp__gemini-review__review_reply_start:
      threadId: [saved completed threadId from Phase 2]
      prompt: |
-       Here are our top ideas after filtering:
-       [paste surviving ideas with novelty check results]
+       Here are our top ideas after novelty adjudication:
+       [paste only ideas with KEEP or REFRAME, including the checked primary claim]
 
        For each, play devil's advocate:
        - What's the strongest objection a reviewer would raise?
@@ -142,7 +145,7 @@ For each surviving idea, run a deeper evaluation:
 
    After this start call, immediately save the returned `jobId` and poll `mcp__gemini-review__review_status` with a bounded `waitSeconds` until `done=true`. Treat the completed status payload's `response` as the follow-up critique.
 
-3. **Combine rankings**: Merge your assessment with Gemini's ranking. Select top 2-3 ideas for pilot experiments.
+3. **Combine rankings**: Rank only ideas with `KEEP` or `REFRAME`; select the top 2-3 for pilot experiments. Never restore a `KILL` idea by adding mechanisms.
 
 ### Phase 5: Parallel Pilot Experiments (for top 2-3 ideas)
 
@@ -176,7 +179,7 @@ Note: Skip this phase if the ideas are purely theoretical or if no GPU is availa
 
 Write a structured report to `idea-stage/IDEA_REPORT.md`:
 
-**Lead every recommended idea with its method, in plain language.** Before any hypothesis, novelty score, or claim, state in 2–4 concrete steps what we actually build / train / run — no jargon, no claim-IDs. The reader must understand *what we do* before *what we claim*; claims (hypothesis, validation, expected outcome) come after and read as the method's acceptance criteria.
+**Lead every recommended idea with its method, in plain language.** Before any hypothesis, novelty disposition, or claim, state in 2–4 concrete steps what we actually build / train / run — no jargon, no claim-IDs. The reader must understand *what we do* before *what we claim*; claims (hypothesis, validation, expected outcome) come after and read as the method's acceptance criteria.
 
 ```markdown
 # Research Idea Report
@@ -195,7 +198,7 @@ Write a structured report to `idea-stage/IDEA_REPORT.md`:
 - **Hypothesis**: [one sentence]
 - **Minimum experiment**: [concrete description]
 - **Expected outcome**: [what success/failure looks like]
-- **Novelty**: X/10 — closest work: [paper]
+- **Novelty decision**: KEEP / REFRAME — primary claim: [one sentence] — closest work: [paper]
 - **Feasibility**: [compute, data, implementation estimates]
 - **Risk**: LOW/MEDIUM/HIGH
 - **Contribution type**: empirical / method / theory / diagnostic
@@ -209,7 +212,7 @@ Write a structured report to `idea-stage/IDEA_REPORT.md`:
 ## Eliminated Ideas (for reference)
 | Idea | Reason eliminated |
 |------|-------------------|
-| ... | Already done by [paper] |
+| ... | KILL — [verified paper] substantially subsumes [primary claim] |
 | ... | Requires > 1 week GPU time |
 | ... | Result wouldn't be interesting either way |
 

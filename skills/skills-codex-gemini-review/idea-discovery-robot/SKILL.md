@@ -253,20 +253,24 @@ For each top idea, run:
 /novelty-check "[idea description with embodiment + task family + benchmark + sensor stack + controller/policy class + sim2real angle + target venues: CoRL/RSS/ICRA/IROS/RA-L]"
 ```
 
-Robotics novelty checks must include:
-- embodiment
-- task family
-- benchmark / simulator
-- sensor stack
-- controller / policy type
-- sim2real or safety angle if relevant
+Robotics novelty checks must include the embodiment, task family, benchmark /
+simulator, sensor stack, controller / policy type, and sim2real or safety angle
+when relevant. These are **search context for one primary contribution**, not six
+separate claims that must each be novel.
 
-Be especially skeptical of ideas that are just:
-- old method + new benchmark
-- VLA/VLM + standard manipulation benchmark
-- sim2real claim without new transfer mechanism
+Apply the novelty disposition literally:
+- `KEEP` — advance the idea unchanged.
+- `REFRAME` — advance the same method using only the returned simple robotics,
+  finding, or evaluation contribution wording.
+- `KILL` — eliminate for novelty only when a concrete verified paper
+  substantially subsumes the primary contribution.
 
-If the method is not novel but the **finding** or **evaluation protocol** is, say that explicitly.
+Old method + new benchmark, VLA/VLM + a standard manipulation benchmark, or a
+sim2real claim without a new transfer mechanism may create an incrementality
+risk. Treat the old component as enabling prior or partial overlap unless one
+paper directly collides with the full primary claim. If the method is not novel
+but an already-present **finding** or **evaluation protocol** is, use `REFRAME`;
+do not add a new module to manufacture novelty.
 
 ## Phase 5: External Robotics Review
 
@@ -314,13 +318,13 @@ Write or update `idea-stage/IDEA_REPORT.md` with a robotics-specific structure s
 - Bottleneck addressed:
 - Pilot type: sim / offline / real
 - Positive signal:
-- Novelty:
+- Novelty decision: KEEP / REFRAME — primary claim: [one sentence]
 - Reviewer score:
 - Hardware risk:
 - Next step:
 
 ## Eliminated Ideas
-- [idea] — killed because benchmark unclear / hardware inaccessible / novelty weak / no fair evaluation
+- [idea] — eliminated because benchmark unclear / hardware inaccessible / no fair evaluation, or `KILL` because [verified paper] substantially subsumes [primary claim]
 
 ## Evidence Package for the Top Idea
 - Required baselines:

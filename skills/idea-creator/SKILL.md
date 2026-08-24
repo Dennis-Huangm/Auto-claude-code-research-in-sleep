@@ -362,12 +362,18 @@ per-idea novelty search:
 
 2. **Novelty check — on the reviewer's top picks only.** Run the
    `/novelty-check` workflow (multi-source search + cross-model verification)
-   on the ideas the triage ranked worth pursuing. This bounds the expensive
-   multi-source search to the survivors instead of every candidate, while
+   on the ideas the triage ranked worth pursuing. Apply its disposition
+   literally:
+   - `KEEP` — advance the idea unchanged.
+   - `REFRAME` — advance the same method using only the returned simple
+     contribution wording; do not add mechanisms.
+   - `KILL` — eliminate it only with the cited verified paper that substantially
+     subsumes the primary contribution.
+   This bounds the expensive multi-source search to the ranked candidates while
    keeping the novelty verdict cross-model.
 
-3. **Select for pilots**: take the top 2-3 ideas that survive both the
-   cross-model triage and the novelty check forward to Phase 5.
+3. **Select for pilots**: take the top 2-3 ideas that receive `KEEP` or
+   `REFRAME` and also survive the cross-model triage forward to Phase 5.
 
 ### Phase 5: Parallel Pilot Experiments (for top 2-3 ideas)
 
@@ -401,7 +407,7 @@ Note: Skip this phase if the ideas are purely theoretical or if no GPU is availa
 
 Write a structured report to `idea-stage/IDEA_REPORT.md`:
 
-**Lead every recommended idea with its method, in plain language.** Before any hypothesis, novelty score, or claim, state in 2–4 concrete steps what we actually build / train / run — no jargon, no claim-IDs. The reader must understand *what we do* before *what we claim*; claims (hypothesis, validation, expected outcome) come after and read as the method's acceptance criteria.
+**Lead every recommended idea with its method, in plain language.** Before any hypothesis, novelty disposition, or claim, state in 2–4 concrete steps what we actually build / train / run — no jargon, no claim-IDs. The reader must understand *what we do* before *what we claim*; claims (hypothesis, validation, expected outcome) come after and read as the method's acceptance criteria.
 
 ```markdown
 # Research Idea Report
@@ -420,7 +426,7 @@ Write a structured report to `idea-stage/IDEA_REPORT.md`:
 - **Hypothesis**: [one sentence]
 - **Minimum experiment**: [concrete description]
 - **Expected outcome**: [what success/failure looks like]
-- **Novelty**: X/10 — closest work: [paper]
+- **Novelty decision**: KEEP / REFRAME — primary claim: [one sentence] — closest work: [paper]
 - **Feasibility**: [compute, data, implementation estimates]
 - **Risk**: LOW/MEDIUM/HIGH
 - **Contribution type**: empirical / method / theory / diagnostic
@@ -434,7 +440,7 @@ Write a structured report to `idea-stage/IDEA_REPORT.md`:
 ## Eliminated Ideas (for reference)
 | Idea | Reason eliminated |
 |------|-------------------|
-| ... | Already done by [paper] |
+| ... | KILL — [verified paper] substantially subsumes [primary claim] |
 | ... | Requires > 1 week GPU time |
 | ... | Result wouldn't be interesting either way |
 

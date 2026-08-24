@@ -141,12 +141,17 @@ For each top idea (positive pilot signal), run a thorough novelty check:
 ```
 
 **What this does:**
-- Multi-source literature search (arXiv, Scholar, Semantic Scholar)
-- Cross-verify with the Gemini-backed `/novelty-check` overlay
-- Check for concurrent work (last 3-6 months)
-- Identify closest existing work and differentiation points
+- Compress the idea to one primary contribution claim
+- Search for substantial subsumption across recent literature
+- Classify closest work as direct collision, partial overlap, enabling prior, or analogous work
+- Run the Prosecutor / Defender / Judge analysis with the Gemini-backed `/novelty-check` overlay
 
-**Update `idea-stage/IDEA_REPORT.md`** with deep novelty results. Eliminate any idea that turns out to be already published.
+**Update `idea-stage/IDEA_REPORT.md`** with the exact disposition:
+- `KEEP` is a positive novelty verdict; advance the idea unchanged.
+- `REFRAME` is a positive novelty verdict; advance the same method using only the returned simple contribution wording.
+- `KILL` is negative; eliminate the idea only with the cited verified paper that substantially subsumes its primary contribution.
+
+Do not add mechanisms in response to novelty overlap. If every selected idea receives `KILL`, return to idea selection or generation rather than narrowing them into more complicated systems.
 
 ### Phase 4: External Critical Review
 
@@ -168,7 +173,7 @@ For the surviving top idea(s), get brutal feedback:
 After review, refine the top idea into a concrete proposal and plan experiments:
 
 ```
-/research-refine-pipeline "[top idea description + pilot results + reviewer feedback]"
+/research-refine-pipeline "[top idea description + KEEP/REFRAME decision + checked primary claim + closest prior work + pilot results + reviewer feedback]"
 ```
 
 **What this does:**
@@ -222,7 +227,7 @@ Finalize `idea-stage/IDEA_REPORT.md` with all accumulated information:
 
 ### 🏆 Idea 1: [title] — RECOMMENDED
 - Pilot: POSITIVE (+X%)
-- Novelty: CONFIRMED (closest: [paper], differentiation: [what's different])
+- Novelty decision: KEEP / REFRAME — primary claim: [one sentence] — closest work: [paper]
 - Reviewer score: X/10
 - Next step: implement full experiment → /auto-review-loop
 

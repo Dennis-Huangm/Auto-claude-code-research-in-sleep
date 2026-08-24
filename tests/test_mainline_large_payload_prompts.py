@@ -38,6 +38,11 @@ def test_mainline_large_payload_skills_prefer_path_only_codex_prompts() -> None:
         "novelty-check": [
             "NOVELTY_DOSSIER.md",
             "Read the novelty dossier at <absolute path",
+            "one-sentence primary contribution",
+            "Prior-Work Relationship Matrix",
+            "Prosecutor",
+            "Defender",
+            "Judge",
         ],
     }
 

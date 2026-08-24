@@ -138,8 +138,8 @@ immediately in the same turn. Do not phrase the update as a question:
 ```
 📋 Idea Discovery complete. Top ideas:
 
-1. [Idea 1 title] — Pilot: POSITIVE (+X%), Novelty: CONFIRMED
-2. [Idea 2 title] — Pilot: WEAK POSITIVE (+Y%), Novelty: CONFIRMED
+1. [Idea 1 title] — Pilot: POSITIVE (+X%), Novelty decision: KEEP
+2. [Idea 2 title] — Pilot: WEAK POSITIVE (+Y%), Novelty decision: REFRAME — [simple claim]
 3. [Idea 3 title] — Pilot: NEGATIVE, eliminated
 
 AUTO_PROCEED: selected Idea 1 — [title]. Continuing to Stage 2.

@@ -253,6 +253,16 @@ def transform_body(text: str) -> str:
     # examples. Normalize those residual references after rewriting the blocks so
     # generated overlays never instruct users to mix Codex agents with Claude MCP.
     text = text.replace("Codex xhigh review", "Claude high-rigor review")
+    text = text.replace("with xhigh reasoning", "with high-rigor review")
+    text = text.replace("This base Codex review is same-family evidence.", "This Claude review is cross-family evidence.")
+    text = text.replace(
+        "`review_independence: same-family` and `acceptance_status: provisional`",
+        "`review_independence: cross-family` and `acceptance_status: accepted`",
+    )
+    text = text.replace(
+        "do not\ndescribe it as cross-family acceptance.",
+        "record it as cross-family acceptance.",
+    )
     text = text.replace("Codex Review", "Claude Review")
     text = text.replace("Codex/GPT-5.5", "Claude reviewer")
     text = text.replace("GPT-5.5", "the Claude reviewer")

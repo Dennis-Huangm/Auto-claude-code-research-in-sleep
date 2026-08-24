@@ -11,6 +11,7 @@ from tools.generate_codex_claude_review_overrides import (
     build_frontmatter,
     extract_field,
     normalize_description,
+    transform_body,
 )
 
 
@@ -49,3 +50,31 @@ def test_checked_in_claude_overlay_frontmatter_is_parseable() -> None:
         text = (CLAUDE_OVERLAY / skill / "SKILL.md").read_text(encoding="utf-8")
         assert isinstance(json.loads(_frontmatter_value(text, "name")), str)
         assert isinstance(json.loads(_frontmatter_value(text, "description")), str)
+
+
+def test_novelty_contract_survives_claude_overlay_transformation() -> None:
+    source = (CODEX_SKILLS / "novelty-check" / "SKILL.md").read_text(encoding="utf-8")
+    match = FRONTMATTER_RE.match(source)
+    assert match is not None
+
+    transformed = transform_body(source[match.end():].lstrip("\n"))
+    for needle in (
+        "exactly ONE primary contribution claim",
+        "DIRECT COLLISION",
+        "PARTIAL OVERLAP",
+        "ENABLING PRIOR",
+        "ANALOGOUS WORK",
+        "prior-art composition fallacy",
+        "Prosecutor",
+        "Defender",
+        "Judge",
+        "KEEP / REFRAME / KILL",
+        "do not mutate it into a more complicated idea",
+    ):
+        assert needle in transformed
+
+    assert "mcp__claude-review__review_start" in transformed
+    assert "mcp__claude-review__review_status" in transformed
+    assert "review_independence: cross-family" in transformed
+    assert "acceptance_status: accepted" in transformed
+    assert "acceptance_status: provisional" not in transformed

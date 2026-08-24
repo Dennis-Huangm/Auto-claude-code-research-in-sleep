@@ -16,6 +16,10 @@ description: "Verify research idea novelty against recent literature. Use when u
 
 Check whether a proposed method/idea has already been done in the literature: **$ARGUMENTS**
 
+The goal is not to find any reason to reject the idea. The goal is to determine
+whether a concrete prior work **substantially subsumes its simple central
+contribution**.
+
 ## Constants
 
 - **REVIEWER_MODEL = `claude-review`** — Claude reviewer invoked through the local `claude-review` MCP bridge. Set `CLAUDE_REVIEW_MODEL` if you need a specific Claude model override.
@@ -23,80 +27,179 @@ Check whether a proposed method/idea has already been done in the literature: **
 
 ## Instructions
 
-Given a method description, systematically verify its novelty:
+### Phase A: Compress the Primary Contribution
 
-### Phase A: Extract Key Claims
-1. Read the user's method description
-2. Identify 3-5 core technical claims that would need to be novel:
-   - What is the method?
-   - What problem does it solve?
-   - What is the mechanism?
-   - What makes it different from obvious baselines?
+1. Read the user's complete method description.
+2. Identify **exactly ONE primary contribution claim**: the contribution whose
+   removal would collapse the paper's thesis.
+3. Express it in one sentence containing the central insight or mechanism, the
+   problem or setting, and the claimed technical effect.
+4. Label its primary novelty locus:
+   - `CONCEPTUAL` — the central insight, problem formulation, mechanism-effect
+     relationship, finding, or use of a representation is the contribution.
+   - `IMPLEMENTATION` — the concrete non-routine realization is itself the
+     contribution.
+5. List remaining modules, backbones, datasets, objectives, benchmarks, and
+   experiments as **supporting elements, not separate novelty claims**. They may
+   be standard, borrowed, adapted, or previously known.
 
-### Phase B: Multi-Source Literature Search
-For EACH core claim, search using ALL available sources:
+If the input appears to contain several contributions, choose the simplest
+single claim that best explains why the work matters. Do not require every
+technical component to be novel.
 
-1. **Web Search** (via `WebSearch`):
-   - Search arXiv, Google Scholar, Semantic Scholar
-   - Use specific technical terms from the claim
-   - Try at least 3 different query formulations per claim
-   - Include year filters for 2024-2026
+### Phase B: Search for Substantial Subsumption
 
-2. **Known paper databases**: Check against:
-   - ICLR 2025/2026, NeurIPS 2025, ICML 2025/2026
-   - Recent arXiv preprints (2025-2026)
+Search the primary contribution as a whole. Use at least these query families:
 
-3. **Read abstracts**: For each potentially overlapping paper, WebFetch its abstract and related work section
+1. The one-sentence contribution in near-natural language.
+2. The central mechanism or insight plus the target problem.
+3. The claimed technical effect plus the setting or application.
+4. Synonyms for the central insight and its closest method family.
+
+Search arXiv, Google Scholar, Semantic Scholar, recent top-venue papers, and the
+most recent six months of preprints. Read the abstract and, when needed, the
+method or related-work sections of potentially overlapping papers.
+
+Component-level queries may retrieve candidates, but a component hit is not a
+separate novelty failure. Classify every candidate paper as exactly one of:
+
+- `DIRECT COLLISION` — substantially the same primary contribution in materially
+  the same technical role.
+- `PARTIAL OVERLAP` — a material shared element that does not subsume the central
+  mechanism-effect claim.
+- `ENABLING PRIOR` — a reusable component, backbone, dataset, objective,
+  benchmark, or tool.
+- `ANALOGOUS WORK` — a similar idea in another problem or setting that does not
+  implement the primary contribution.
+
+A paper substantially subsumes the primary contribution only when verified
+evidence covers its essential conceptual core or claimed non-routine
+implementation and leaves only routine engineering, parameter, benchmark, or
+presentation differences.
+
+Do not commit the **prior-art composition fallacy**: separate papers A, B, and C
+showing separate ingredients do not establish that any paper has already made
+the proposed central contribution. Record apparent obviousness as an
+**obviousness / incrementality risk**, not as `already done`.
 
 ### Phase C: Fresh-Agent Verification (cross-family accepted by default)
-Call REVIEWER_MODEL via `mcp__claude-review__review_start` with high-rigor review:
+
+Call REVIEWER_MODEL via a fresh `mcp__claude-review__review_start` with high-rigor review. When the
+method and paper list are substantial, write a dossier such as
+`NOVELTY_DOSSIER.md` and instruct the reviewer to read it rather than duplicating
+large content inline.
+
 ```
 mcp__claude-review__review_start:
   prompt: |
-    [Full novelty briefing + prior work list + specific novelty questions]
+    Read the novelty dossier at <absolute path to NOVELTY_DOSSIER.md> and
+    follow all instructions in it.
 ```
 
 After this start call, immediately save the returned `jobId` and poll `mcp__claude-review__review_status` with a bounded `waitSeconds` until `done=true`. Treat the completed status payload's `response` as the reviewer output, and save the completed `threadId` for any follow-up round.
-Prompt should include:
-- The proposed method description
-- All papers found in Phase B
-- Ask: "Is this method novel? What is the closest prior work? What is the delta?"
 
-### Phase D: Novelty Report
-Output a structured report:
+The dossier must contain:
+
+- the full proposed method;
+- the one-sentence primary contribution and novelty locus;
+- supporting elements explicitly marked as non-claims;
+- the verified candidate-paper set and relationship evidence;
+- the four relationship definitions and `KEEP / REFRAME / KILL` rules;
+- three ordered passes in one reviewer response:
+  1. **Prosecutor** — construct the strongest evidence-grounded subsumption case.
+  2. **Defender** — test whether the case is only terminology, component,
+     benchmark, enabling-prior, analogous, or multi-paper overlap; defend the
+     supplied idea honestly.
+  3. **Judge** — after both arguments, classify the papers and issue the decision.
+
+The Defender may clarify or narrow an existing contribution, but must not add a
+module, loss, objective, training stage, constraint, dataset, benchmark, task
+setting, or mechanism that was not already part of the checked idea.
+
+This Claude review is cross-family evidence. Record
+`review_independence: cross-family` and `acceptance_status: accepted`; record it as cross-family acceptance.
+
+### Phase D: Decision
+
+- `KEEP` — no verified paper substantially subsumes the primary contribution.
+  Partial overlap, enabling prior, and analogous work are compatible with KEEP.
+- `REFRAME` — the method remains unchanged but the claim is too broad. Return one
+  honest 1–2 sentence replacement claim using only ideas already present.
+- `KILL` — allowed only when one concrete, verified paper is a `DIRECT
+  COLLISION`, substantially subsumes the primary contribution, and no honest
+  narrower contribution already present remains.
+
+`KILL` requires claim-to-paper evidence. Known ingredients, many related papers,
+a weak-novelty impression, or a combination of separate papers is insufficient.
+
+### Phase E: Novelty Report
 
 ```markdown
 ## Novelty Check Report
 
-### Proposed Method
-[1-2 sentence description]
+### One-Sentence Idea
+[Exactly one compressed sentence]
 
-### Core Claims
-1. [Claim 1] — Novelty: HIGH/MEDIUM/LOW — Closest: [paper]
-2. [Claim 2] — Novelty: HIGH/MEDIUM/LOW — Closest: [paper]
-...
+### Primary Contribution
+- Claim: [exactly one]
+- Novelty locus: CONCEPTUAL / IMPLEMENTATION
+- Supporting elements that are not separate novelty claims: [list]
 
-### Closest Prior Work
-| Paper | Year | Venue | Overlap | Key Difference |
-|-------|------|-------|---------|----------------|
+### Prior-Work Relationship Matrix
+| Paper | Verified? | Relationship | Evidence of overlap | What remains distinct |
+|-------|-----------|--------------|---------------------|-----------------------|
 
-### Overall Novelty Assessment
-- Score: X/10
-- Recommendation: PROCEED / PROCEED WITH CAUTION / ABANDON
-- Key differentiator: [what makes this unique, if anything]
-- Risk: [what a reviewer would cite as prior work]
+### Adversarial Review
+#### Prosecutor
+[Strongest concrete subsumption argument]
 
-### Suggested Positioning
-[How to frame the contribution to maximize novelty perception]
+#### Defender
+[Strongest honest defense of the supplied idea; no added mechanisms]
+
+#### Judge
+[Resolve the arguments and explain the relationship classification]
+
+### Decision
+- Decision: KEEP / REFRAME / KILL
+- Subsumption finding: [what one concrete paper does or does not cover]
+- Closest concrete paper: [paper or "none found under the recorded search"]
+- Rationale: [evidence-calibrated explanation]
+- Honest one-sentence reframe: [required only for REFRAME]
+- Obviousness / incrementality risk: [separate from already-done evidence]
+- Evidence limitations: [coverage gaps and unverified candidates]
 ```
 
-### Important Rules
-- Be BRUTALLY honest — false novelty claims waste months of research time
-- "Applying X to Y" is NOT novel unless the application reveals surprising insights
-- Check both the method AND the experimental setting for novelty
-- If the method is not novel but the FINDING would be, say so explicitly
-- Always check the most recent 6 months of arXiv — the field moves fast
+### Simplicity Preservation Rules
+
+- Evaluate the supplied idea; do not mutate it into a more complicated idea to
+  escape prior work.
+- Prefer a simple meaningful delta stated in 1–2 sentences over a narrower,
+  mechanism-heavy gap.
+- If differentiation requires a new architecture, module, objective,
+  regularizer, stage, dataset, benchmark, or setting, label it as a possible
+  **new idea**, not a reframe.
+- If the existing difference cannot be stated clearly in 1–2 sentences, report
+  `weak or unclear delta`; do not manufacture specificity.
+- “Applying X to Y” is not automatically novel, but neither is it automatically
+  non-novel. Judge the primary contribution.
+- If an already-present finding or evaluation contribution survives when the
+  method does not, use `REFRAME` and state it plainly.
+- Say “no substantial subsumption found under the recorded search,” not
+  “novelty confirmed.”
+
+### Paper Verification
+
+Every paper in the relationship matrix must pass pre-search verification via
+`verify_papers.py`, resolved per `../shared-references/integration-contract.md`.
+If the helper is unavailable or fails, retain the entry as `[UNVERIFIED]` and
+surface the uncertainty. An `[UNVERIFIED]` paper can never support `KILL`. Never
+fabricate identifiers or titles from memory.
 
 ## Review Tracing
 
-After each `mcp__claude-review__review_start` or optional `oracle-pro` reviewer call, save the trace following `../shared-references/review-tracing.md`. Write files directly to `.aris/traces/novelty-check/<date>_run<NN>/` and record searched claims, closest papers, reviewer route, raw response, and final novelty decision. Respect the `--- trace:` parameter when present (default: `full`).
+After each `mcp__claude-review__review_start` or optional `oracle-pro` reviewer call, save the trace
+following `../shared-references/review-tracing.md`. Write files to
+`.aris/traces/novelty-check/<date>_run<NN>/` and record the primary claim,
+candidate-paper relationships, reviewer route, raw Prosecutor/Defender/Judge
+response, final disposition, and cross-family accepted status. Respect the
+`--- trace:` parameter when present (default: `full`).
