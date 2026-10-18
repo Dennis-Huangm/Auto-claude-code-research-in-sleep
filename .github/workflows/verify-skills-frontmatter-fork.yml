@@ -18,10 +18,12 @@ jobs:
         with:
           python-version: '3.11'
       - name: Install test dependency
-        run: python -m pip install pytest
+        run: python -m pip install pytest httpx
       - name: Compile touched Python files
         run: python -m compileall -q tools/check_skills_inventory.py tests/test_skills_inventory_allowed_tools.py
       - name: Run new regression and existing mirror checks
         run: python -m pytest -q tests/test_skills_inventory_allowed_tools.py tests/test_codex_skill_mirror.py
       - name: Check complete skill inventory
         run: python tools/check_skills_inventory.py
+      - name: Run complete Python regression suite
+        run: python -m pytest tests/ -q
