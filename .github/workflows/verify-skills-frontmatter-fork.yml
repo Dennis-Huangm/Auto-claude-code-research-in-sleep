@@ -1,0 +1,27 @@
+name: Fork-only Skill frontmatter regression
+
+on:
+  push:
+    branches:
+      - fix/skills-inventory-frontmatter-only
+
+permissions:
+  contents: read
+
+jobs:
+  frontmatter-inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install test dependency
+        run: python -m pip install pytest
+      - name: Compile touched Python files
+        run: python -m compileall -q tools/check_skills_inventory.py tests/test_skills_inventory_allowed_tools.py
+      - name: Run new regression and existing mirror checks
+        run: python -m pytest -q tests/test_skills_inventory_allowed_tools.py tests/test_codex_skill_mirror.py
+      - name: Check complete skill inventory
+        run: python tools/check_skills_inventory.py
