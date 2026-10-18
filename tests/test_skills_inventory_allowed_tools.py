@@ -33,7 +33,7 @@ from tools.check_skills_inventory import allowed_tools
             ["Read", "Agent"],
         ),
         (
-            "\\ufeff---\nname: example\nallowed-tools: Read\n---\n",
+            "\ufeff---\nname: example\nallowed-tools: Read\n---\n",
             ["Read"],
         ),
         (
