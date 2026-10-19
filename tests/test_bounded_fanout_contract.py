@@ -133,13 +133,14 @@ def test_leaf_agent_is_read_only_and_matches_the_shared_turn_cap() -> None:
     assert not tools.intersection(FORBIDDEN_LEAF_TOOLS)
 
 
-def test_only_the_three_fanout_skills_grant_agent_and_reference_the_leaf_contract() -> None:
+def test_fanout_skills_scope_agent_to_leaf_and_preserve_lean_implementation_workers() -> None:
     skills_with_agent_grants = {
         skill_file.parent.name
         for skill_file in MAINLINE_SKILLS.glob("*/SKILL.md")
         if agent_grants(read(skill_file))
     }
-    assert skills_with_agent_grants == FANOUT_SKILLS
+    assert skills_with_agent_grants == FANOUT_SKILLS | {"lean-formalize"}
+    assert agent_grants(read(MAINLINE_SKILLS / "lean-formalize" / "SKILL.md")) == ["Agent"]
 
     expected_grant = f"Agent({EXPECTED_CONTRACT['ARIS_FANOUT_AGENT_TYPE']})"
     for skill_name in FANOUT_SKILLS:
@@ -221,3 +222,17 @@ def test_fanout_references_match_current_idea_creator_phase_three() -> None:
         assert "quick novelty check + feasibility gating" not in text
         assert "phase 3 performs mechanical deduplication" in normalized
         assert "every feasible non-duplicate candidate reaches the phase-4 jury" in normalized
+
+
+def test_leaf_contract_keeps_lean_implementation_delegation_available() -> None:
+    for reference_file in (MAINLINE_FANOUT, CODEX_FANOUT):
+        normalized = normalize_whitespace(read(reference_file)).lower()
+        assert "candidate-generation and source-extraction" in normalized
+        assert "lean-formalize" in normalized
+        assert "owned modules" in normalized
+        assert "actual caller" in normalized
+
+    for skill_root in (MAINLINE_SKILLS, CODEX_SKILLS):
+        text = read(skill_root / "proof-checker" / "SKILL.md")
+        assert "lean-formalize" in text
+    assert "Skill(lean-formalize)" in frontmatter(read(MAINLINE_SKILLS / "proof-checker" / "SKILL.md"))
