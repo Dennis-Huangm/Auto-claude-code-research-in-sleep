@@ -33,6 +33,11 @@ from tools.check_skills_inventory import allowed_tools
             ["Read", "Agent"],
         ),
         (
+            "---\r\nname: example\r\nallowed-tools: Read, Agent\r\n"
+            "description: example\r\n---\r\n",
+            ["Read", "Agent"],
+        ),
+        (
             "\ufeff---\nname: example\nallowed-tools: Read\n---\n",
             ["Read"],
         ),
